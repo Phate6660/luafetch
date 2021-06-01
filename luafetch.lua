@@ -137,6 +137,32 @@ local function return_music(player)
     end
 end
 
+local function return_uptime()
+    local uptime = tonumber(split(read('/proc/uptime'), '.')[1])
+    if uptime > 86400 then
+        local days_pre = uptime / 60 / 60 / 24
+        days_pre = split(tostring(days_pre), '.')[1]
+        Days = days_pre .. 'd'
+    else
+        Days = ''
+    end
+    if uptime > 3600 then
+        local hours_pre = (uptime / 60 / 60) % 24
+        hours_pre = split(tostring(hours_pre), '.')[1]
+        Hours = hours_pre .. 'h'
+    else
+        Hours = ''
+    end
+    if uptime > 60 then
+        local minutes_pre = (uptime / 60) % 60
+        minutes_pre = split(tostring(minutes_pre), '.')[1]
+        Minutes = minutes_pre .. 'm'
+    else
+        Meconds =  ''
+    end
+    return Days .. ' ' .. Hours .. ' ' .. Minutes
+end
+
 local cpu      = return_cpu()
 local device   = read('/sys/devices/virtual/dmi/id/product_name', nil, true)
 local distro   = return_distro()
@@ -146,6 +172,7 @@ local kernel   = read('/proc/sys/kernel/osrelease', nil, true)
 local memory   = return_memory()
 local packages = return_packages(arg[1]) -- Reads first arg specified when running the script.
 local shell    = env('SHELL')
+local uptime   = return_uptime()
 local user     = env('USER')
 local music    = return_music(arg[2]) -- Reads the second arg passed.
 
@@ -158,6 +185,7 @@ print('cpu       =  ' .. cpu      .. '\n'
    .. 'memory    =  ' .. memory   .. '\n'
    .. 'packages  =  ' .. packages .. '\n'
    .. 'shell     =  ' .. shell    .. '\n'
+   .. 'uptime    =  ' .. uptime   .. '\n'
    .. 'user      =  ' .. user     .. '\n'
    .. 'music     =  ' .. music
 )

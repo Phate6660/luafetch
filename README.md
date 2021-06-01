@@ -27,6 +27,7 @@ kernel    =  5.11.3-ck-VALLEY
 memory    =  15970 MB
 packages  =  156 (explicit), 835 (total) | Portage
 shell     =  /bin/bash
+uptime    =  10d 16h 34m
 user      =  valley
 music     =  Flaw - Endangered Species - Medicate
 ```
