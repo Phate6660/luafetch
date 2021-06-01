@@ -33,26 +33,35 @@ local function replace(arg, char, rep)
     end
 end
 
--- Takes a file path, and optionally a line number.
+-- Takes a file path, optionally a line number, and optionally to strip newlines.
 -- With just the file path, it'll return the contents of the file.
 -- Specifying a line number will return only that line.
-local function read(file_path, line_number)
+local function read(file_path, line_number, strip)
     line_number = line_number or 'N/A'
+    strip = strip or false
     local file = io.open(file_path, 'r')
     if not file then
         return 'N/A (could not read "' .. file_path .. '")'
     else
         local contents = file:read '*a'
         file:close()
-        if line_number == 'N/A' then
-            return replace(contents, '\n', '')
+        if line_number == 'N/A' or nil then
+            if strip == true then
+                return replace(contents, '\n', '')
+            elseif strip == false then
+                return contents
+            end
         else
             local contents_table = {}
             local delim = '\n'
             for line in string.gmatch(contents, '([^' .. delim .. ']+)') do
                 table.insert(contents_table, line)
             end
-            return replace(contents_table[line_number], '\n', '')
+            if strip == true then
+                return replace(contents_table[line_number], '\n', '')
+            elseif strip == false then
+                return contents_table[line_number]
+            end
         end
     end
 end
@@ -67,19 +76,19 @@ local function split(string, delim)
 end
 
 local function return_cpu()
-    local line = read('/proc/cpuinfo', 5)
+    local line = read('/proc/cpuinfo', 5, true)
     local line_table = split(line, ':')
     return line_table[2]:sub(2) -- Remove leading space from using ':' as delimiter.
 end
 
 local function return_distro()
-    local line = read('/etc/os-release', 3)
+    local line = read('/etc/os-release', 3, true)
     local line_table = split(line, '=')
     return replace(line_table[2], '"', '')
 end
 
 local function return_memory()
-    local line = read('/proc/meminfo', 1)
+    local line = read('/proc/meminfo', 1, true)
     local line_table = split(line, ' ')
     local kb = tonumber(line_table[2])
     if kb > 1024 then
@@ -100,7 +109,10 @@ local function return_packages(mngr)
         )
         local dirs_list = dirs:read('*a')
         dirs:close()
-        return linecount(dirs_list) .. ' (portage)'
+        local total = linecount(dirs_list)
+        local explicit_list = read('/var/lib/portage/world', nil, false)
+        local explicit = linecount(explicit_list)
+        return explicit .. ' (explicit), ' .. total .. ' (total) ' .. '| Portage'
     elseif mngr == 'undefined' then
         return 'N/A (no package manager was passed to the function)'
     else
@@ -109,11 +121,11 @@ local function return_packages(mngr)
 end
 
 local cpu      = return_cpu()
-local device   = read('/sys/devices/virtual/dmi/id/product_name')
+local device   = read('/sys/devices/virtual/dmi/id/product_name', nil, true)
 local distro   = return_distro()
 local editor   = env('EDITOR')
-local hostname = read('/etc/hostname')
-local kernel   = read('/proc/sys/kernel/osrelease')
+local hostname = read('/etc/hostname', nil, true)
+local kernel   = read('/proc/sys/kernel/osrelease', nil, true)
 local memory   = return_memory()
 local packages = return_packages(arg[1]) -- Reads first arg specified when running the script.
 local shell    = env('SHELL')

@@ -17,6 +17,6 @@ editor    =  /usr/bin/nvim
 hostname  =  gentoo
 kernel    =  5.11.3-ck-VALLEY
 memory    =  15970 MB
-packages  =  835 (portage)
+packages  =  156 (explicit), 835 (total) | Portage
 shell     =  /bin/bash
 ```
