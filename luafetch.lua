@@ -100,7 +100,7 @@ local function return_memory()
 end
 
 local function return_packages(mngr)
-    mngr = mngr or nil
+    mngr = mngr or 'nil'
     if mngr == "portage" then
         -- '/var/db/pkg/*/*' is a list of all packages.
         local dirs = io.popen(
@@ -113,7 +113,7 @@ local function return_packages(mngr)
         local explicit_list = read('/var/lib/portage/world', nil, false)
         local explicit = linecount(explicit_list)
         return explicit .. ' (explicit), ' .. total .. ' (total) ' .. '| Portage'
-    elseif mngr == nil then
+    elseif mngr == 'nil' then
         return 'N/A (no package manager was passed to the function)'
     else
         return 'N/A (' .. mngr .. ' is unsupported right now)'
@@ -121,7 +121,7 @@ local function return_packages(mngr)
 end
 
 local function return_music(player)
-    player = player or nil
+    player = player or 'nil'
     if player == 'mpd' then
         local line = io.popen('mpc -f "%artist% - %album% - %title%" | head -n1', 'r')
         local usable_line = line:read('*a')
@@ -132,7 +132,7 @@ local function return_music(player)
         local usable_line = line:read('*a')
         line:close()
         return replace(usable_line, '\n', '')
-    elseif player == nil then
+    elseif player == 'nil' then
         return 'N/A (no player selected)'
     end
 end
