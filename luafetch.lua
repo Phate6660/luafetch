@@ -116,6 +116,7 @@ local hostname = read('/etc/hostname')
 local kernel   = read('/proc/sys/kernel/osrelease')
 local memory   = return_memory()
 local packages = return_packages(arg[1]) -- Reads first arg specified when running the script.
+local shell    = env('SHELL')
 
 print('cpu       =  ' .. cpu      .. '\n'
    .. 'device    =  ' .. device   .. '\n'
@@ -124,5 +125,6 @@ print('cpu       =  ' .. cpu      .. '\n'
    .. 'hostname  =  ' .. hostname .. '\n'
    .. 'kernel    =  ' .. kernel   .. '\n'
    .. 'memory    =  ' .. memory   .. '\n'
-   .. 'packages  =  ' .. packages
+   .. 'packages  =  ' .. packages .. '\n'
+   .. 'shell     =  ' .. shell
 )
