@@ -10,6 +10,19 @@ local function env(var)
     end
 end
 
+local function linecount(string)
+    local lines = {}
+    for line in string.gmatch(string, '([^\n]+)') do
+        table.insert(lines, line)
+    end
+    local count = {}
+    for i, _ in ipairs(lines) do
+        table.insert(count, i)
+    end
+    return count[#count+1-1]
+end
+
+
 local function replace(arg, char, rep)
     if string.match(arg, char) then
         return arg:gsub(char, rep)
@@ -71,6 +84,24 @@ local function return_memory()
     return kb
 end
 
+local function return_packages(mngr)
+    mngr = mngr or 'undefined'
+    if mngr == "portage" then
+        -- '/var/db/pkg/*/*' is a list of all packages
+        local dirs = io.popen(
+            'find "/var/db/pkg/" -mindepth 2 -maxdepth 2 -type d -printf "%f\n"',
+            'r'
+        )
+        local dirs_list = dirs:read('*a')
+        dirs:close()
+        return linecount(dirs_list) .. ' (portage)'
+    elseif mngr == 'undefined' then
+        return 'N/A (no package manager was passed to the function)'
+    else
+        return 'N/A (' .. mngr .. ' is unsupported right now)'
+    end
+end
+
 local cpu      = return_cpu()
 local device   = read('/sys/devices/virtual/dmi/id/product_name')
 local distro   = return_distro()
@@ -78,6 +109,7 @@ local editor   = env('EDITOR')
 local hostname = read('/etc/hostname')
 local kernel   = read('/proc/sys/kernel/osrelease')
 local memory   = return_memory()
+local packages = return_packages(arg[1])
 
 print('cpu       =  ' .. cpu      .. '\n'
    .. 'device    =  ' .. device   .. '\n'
@@ -85,5 +117,6 @@ print('cpu       =  ' .. cpu      .. '\n'
    .. 'editor    =  ' .. editor   .. '\n'
    .. 'hostname  =  ' .. hostname .. '\n'
    .. 'kernel    =  ' .. kernel   .. '\n'
-   .. 'memory    =  ' .. memory
+   .. 'memory    =  ' .. memory   .. '\n'
+   .. 'packages  =  ' .. packages
 )
