@@ -100,7 +100,7 @@ local function return_memory()
 end
 
 local function return_packages(mngr)
-    mngr = mngr or 'undefined'
+    mngr = mngr or nil
     if mngr == "portage" then
         -- '/var/db/pkg/*/*' is a list of all packages.
         local dirs = io.popen(
@@ -113,7 +113,7 @@ local function return_packages(mngr)
         local explicit_list = read('/var/lib/portage/world', nil, false)
         local explicit = linecount(explicit_list)
         return explicit .. ' (explicit), ' .. total .. ' (total) ' .. '| Portage'
-    elseif mngr == 'undefined' then
+    elseif mngr == nil then
         return 'N/A (no package manager was passed to the function)'
     else
         return 'N/A (' .. mngr .. ' is unsupported right now)'

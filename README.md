@@ -5,8 +5,13 @@ Decided to make this. Lua has been growing on me and I wanted to test it more.
 Run with `lua luafetch.lua` or `luajit luafetch.lua`.
 
 Args:
-- package manager: currently only portage is supported
-- music player: currently only mpd and spotify are supported
+- package manager: currently only `portage` is supported
+- music player: currently only `mpd` and `spotify` are supported
+
+This is all pure Lua, EXCEPT for when using the args specified above.<br>
+My reasoning: I use `find` for getting a list of dirs, because I could not find a simple pure<br>
+lua solution. I use `mpc` and `head` for getting the music info for MPD. And I use<br>
+`playerctl` to get the music information from Spotify.
 
 ## Output
 
