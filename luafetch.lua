@@ -10,6 +10,8 @@ local function env(var)
     end
 end
 
+-- Takes a string, creates a table delimited by newlines,
+-- counts the number of elements, then returns the number.
 local function linecount(string)
     local lines = {}
     for line in string.gmatch(string, '([^\n]+)') do
@@ -27,10 +29,13 @@ local function replace(arg, char, rep)
     if string.match(arg, char) then
         return arg:gsub(char, rep)
     else
-        return arg -- just return arg without doing anything if char wasn't found
+        return arg -- Just return arg without doing anything if char wasn't found.
     end
 end
 
+-- Takes a file path, and optionally a line number.
+-- With just the file path, it'll return the contents of the file.
+-- Specifying a line number will return only that line.
 local function read(file_path, line_number)
     line_number = line_number or 'N/A'
     local file = io.open(file_path, 'r')
@@ -52,6 +57,7 @@ local function read(file_path, line_number)
     end
 end
 
+-- Split a string based on a delimiter, return a table.
 local function split(string, delim)
     local string_table = {}
     for entry in string.gmatch(string, '([^' .. delim .. ']+)') do
@@ -63,7 +69,7 @@ end
 local function return_cpu()
     local line = read('/proc/cpuinfo', 5)
     local line_table = split(line, ':')
-    return line_table[2]:sub(2) -- remove leading space from using ':' as delimiter
+    return line_table[2]:sub(2) -- Remove leading space from using ':' as delimiter.
 end
 
 local function return_distro()
@@ -87,7 +93,7 @@ end
 local function return_packages(mngr)
     mngr = mngr or 'undefined'
     if mngr == "portage" then
-        -- '/var/db/pkg/*/*' is a list of all packages
+        -- '/var/db/pkg/*/*' is a list of all packages.
         local dirs = io.popen(
             'find "/var/db/pkg/" -mindepth 2 -maxdepth 2 -type d -printf "%f\n"',
             'r'
@@ -109,7 +115,7 @@ local editor   = env('EDITOR')
 local hostname = read('/etc/hostname')
 local kernel   = read('/proc/sys/kernel/osrelease')
 local memory   = return_memory()
-local packages = return_packages(arg[1])
+local packages = return_packages(arg[1]) -- Reads first arg specified when running the script.
 
 print('cpu       =  ' .. cpu      .. '\n'
    .. 'device    =  ' .. device   .. '\n'
