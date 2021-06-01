@@ -22,7 +22,7 @@ local function read(file_path, line_number)
     line_number = line_number or 'N/A'
     local file = io.open(file_path, 'r')
     if not file then
-        return 'N/A (could not read "' .. arg .. '")'
+        return 'N/A (could not read "' .. file_path .. '")'
     else
         local contents = file:read '*a'
         file:close()
@@ -31,7 +31,7 @@ local function read(file_path, line_number)
         else
             local contents_table = {}
             local delim = '\n'
-            for line in string.gmatch(contents, '([^'..delim..']+)') do
+            for line in string.gmatch(contents, '([^' .. delim .. ']+)') do
                 table.insert(contents_table, line)
             end
             return replace(contents_table[line_number], '\n', '')
@@ -41,7 +41,7 @@ end
 
 local function split(string, delim)
     local string_table = {}
-    for entry in string.gmatch(string, '([^'..delim..']+)') do
+    for entry in string.gmatch(string, '([^' .. delim .. ']+)') do
         table.insert(string_table, entry)
     end
     return string_table
@@ -49,8 +49,8 @@ end
 
 local function return_cpu()
     local line = read('/proc/cpuinfo', 5)
-	local line_table = split(line, ':')
-	return line_table[2]:sub(2) -- remove leading space from using ':' as delimiter
+    local line_table = split(line, ':')
+    return line_table[2]:sub(2) -- remove leading space from using ':' as delimiter
 end
 
 local function return_distro()
@@ -62,11 +62,11 @@ end
 local function return_memory()
     local line = read('/proc/meminfo', 1)
     local line_table = split(line, ' ')
-    local kb = line_table[2]
-    if tonumber(kb) > 1024 then
-        local mb = tonumber(kb) / 1024
+    local kb = tonumber(line_table[2])
+    if kb > 1024 then
+        local mb = kb / 1024
         local mb_table = split(tostring(mb), '.')
-		return mb_table[1] .. ' MB'
+        return mb_table[1] .. ' MB'
     end
     return kb
 end
