@@ -47,19 +47,43 @@ local function split(string, delim)
     return string_table
 end
 
+local function return_cpu()
+    local line = read('/proc/cpuinfo', 5)
+	local line_table = split(line, ':')
+	return line_table[2]:sub(2) -- remove leading space from using ':' as delimiter
+end
+
 local function return_distro()
     local line = read('/etc/os-release', 3)
     local line_table = split(line, '=')
     return replace(line_table[2], '"', '')
 end
 
-local distro = return_distro()
-local editor = env('EDITOR')
-local hostname = read('/etc/hostname')
-local kernel = read('/proc/sys/kernel/osrelease')
+local function return_memory()
+    local line = read('/proc/meminfo', 1)
+    local line_table = split(line, ' ')
+    local kb = line_table[2]
+    if tonumber(kb) > 1024 then
+        local mb = tonumber(kb) / 1024
+        local mb_table = split(tostring(mb), '.')
+		return mb_table[1] .. ' MB'
+    end
+    return kb
+end
 
-print('distro    =  ' .. distro   .. '\n'
+local cpu      = return_cpu()
+local device   = read('/sys/devices/virtual/dmi/id/product_name')
+local distro   = return_distro()
+local editor   = env('EDITOR')
+local hostname = read('/etc/hostname')
+local kernel   = read('/proc/sys/kernel/osrelease')
+local memory   = return_memory()
+
+print('cpu       =  ' .. cpu      .. '\n'
+   .. 'device    =  ' .. device   .. '\n'
+   .. 'distro    =  ' .. distro   .. '\n'
    .. 'editor    =  ' .. editor   .. '\n'
    .. 'hostname  =  ' .. hostname .. '\n'
-   .. 'kernel    =  ' .. kernel
+   .. 'kernel    =  ' .. kernel   .. '\n'
+   .. 'memory    =  ' .. memory
 )
