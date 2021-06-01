@@ -120,6 +120,23 @@ local function return_packages(mngr)
     end
 end
 
+local function return_music(player)
+    player = player or nil
+    if player == 'mpd' then
+        local line = io.popen('mpc -f "%artist% - %album% - %title%" | head -n1', 'r')
+        local usable_line = line:read('*a')
+        line:close()
+        return replace(usable_line, '\n', '')
+    elseif player == 'spotify' then
+        local line = io.popen('playerctl -p spotify metadata -f "{{ artist }} - {{ album }} - {{ title }}"')
+        local usable_line = line:read('*a')
+        line:close()
+        return replace(usable_line, '\n', '')
+    elseif player == nil then
+        return 'N/A (no player selected)'
+    end
+end
+
 local cpu      = return_cpu()
 local device   = read('/sys/devices/virtual/dmi/id/product_name', nil, true)
 local distro   = return_distro()
@@ -129,6 +146,8 @@ local kernel   = read('/proc/sys/kernel/osrelease', nil, true)
 local memory   = return_memory()
 local packages = return_packages(arg[1]) -- Reads first arg specified when running the script.
 local shell    = env('SHELL')
+local user     = env('USER')
+local music    = return_music(arg[2]) -- Reads the second arg passed.
 
 print('cpu       =  ' .. cpu      .. '\n'
    .. 'device    =  ' .. device   .. '\n'
@@ -138,5 +157,7 @@ print('cpu       =  ' .. cpu      .. '\n'
    .. 'kernel    =  ' .. kernel   .. '\n'
    .. 'memory    =  ' .. memory   .. '\n'
    .. 'packages  =  ' .. packages .. '\n'
-   .. 'shell     =  ' .. shell
+   .. 'shell     =  ' .. shell    .. '\n'
+   .. 'user      =  ' .. user     .. '\n'
+   .. 'music     =  ' .. music
 )
