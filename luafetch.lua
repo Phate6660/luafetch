@@ -37,7 +37,7 @@ end
 -- With just the file path, it'll return the contents of the file.
 -- Specifying a line number will return only that line.
 local function read(file_path, line_number, strip)
-    line_number = line_number or 'N/A'
+    line_number = line_number or 'nil'
     strip = strip or false
     local file = io.open(file_path, 'r')
     if not file then
@@ -45,7 +45,7 @@ local function read(file_path, line_number, strip)
     else
         local contents = file:read '*a'
         file:close()
-        if line_number == 'N/A' or nil then
+        if line_number == 'nil' then
             if strip == true then
                 return replace(contents, '\n', '')
             elseif strip == false then
@@ -128,7 +128,10 @@ local function return_music(player)
         line:close()
         return replace(usable_line, '\n', '')
     elseif player == 'spotify' then
-        local line = io.popen('playerctl -p spotify metadata -f "{{ artist }} - {{ album }} - {{ title }}"')
+        local line = io.popen(
+            'playerctl -p spotify metadata -f "{{ artist }} - {{ album }} - {{ title }}"',
+            'r'
+        )
         local usable_line = line:read('*a')
         line:close()
         return replace(usable_line, '\n', '')
@@ -158,9 +161,13 @@ local function return_uptime()
         minutes_pre = split(tostring(minutes_pre), '.')[1]
         Minutes = minutes_pre .. 'm'
     else
-        Meconds =  ''
+        Minutes =  ''
     end
-    return Days .. ' ' .. Hours .. ' ' .. Minutes
+    if Days == '' then
+        return (Days .. ' ' .. Hours .. ' ' .. Minutes):sub(2)
+    else
+        return Days .. ' ' .. Hours .. ' ' .. Minutes
+    end
 end
 
 local cpu      = return_cpu()
