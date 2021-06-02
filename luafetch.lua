@@ -1,6 +1,7 @@
 -- Luafetch
 -- Created by: Phate6660
 
+-- Takes an environmental variable. Returns the contents if it's set.
 local function env(var)
     local data = os.getenv(var)
     if not data then
@@ -24,7 +25,8 @@ local function linecount(string)
     return count[#count+1-1]
 end
 
-
+-- Takes a string, the character to find, and what to replace it with.
+-- Returns the string with all instances of the character replaced.
 local function replace(arg, char, rep)
     if string.match(arg, char) then
         return arg:gsub(char, rep)
@@ -46,6 +48,9 @@ local function read(file_path, line_number, strip)
         local contents = file:read '*a'
         file:close()
         if line_number == 'nil' then
+            -- TODO: replace these strip checks with an output
+            -- function that automatically deals with newlines.
+            -- It's annoying seeing this duplicate code.
             if strip == true then
                 return replace(contents, '\n', '')
             elseif strip == false then
