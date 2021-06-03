@@ -35,6 +35,15 @@ local function replace(arg, char, rep)
     end
 end
 
+local function return_output(output, strip)
+    strip = strip or false
+    if strip == true then
+        return replace(output, '\n', '')
+    else
+        return output
+    end
+end
+
 -- Takes a file path, optionally a line number, and optionally to strip newlines.
 -- With just the file path, it'll return the contents of the file.
 -- Specifying a line number will return only that line.
@@ -48,25 +57,14 @@ local function read(file_path, line_number, strip)
         local contents = file:read '*a'
         file:close()
         if line_number == 'nil' then
-            -- TODO: replace these strip checks with an output
-            -- function that automatically deals with newlines.
-            -- It's annoying seeing this duplicate code.
-            if strip == true then
-                return replace(contents, '\n', '')
-            elseif strip == false then
-                return contents
-            end
+            return return_output(contents, strip)
         else
             local contents_table = {}
             local delim = '\n'
             for line in string.gmatch(contents, '([^' .. delim .. ']+)') do
                 table.insert(contents_table, line)
             end
-            if strip == true then
-                return replace(contents_table[line_number], '\n', '')
-            elseif strip == false then
-                return contents_table[line_number]
-            end
+            return return_output(contents_table[line_number], strip)
         end
     end
 end
