@@ -35,6 +35,7 @@ local function replace(arg, char, rep)
     end
 end
 
+-- A function to return output, and optionally strip newlines from it.
 local function return_output(output, strip)
     strip = strip or false
     if strip == true then
@@ -140,6 +141,8 @@ local function return_music(player)
         return replace(usable_line, '\n', '')
     elseif player == 'nil' then
         return 'N/A (no player selected)'
+    else
+        return 'N/A (' .. player .. ' is unsupported right now)'
     end
 end
 
