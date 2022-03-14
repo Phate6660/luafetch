@@ -117,6 +117,9 @@ local function return_packages(mngr)
         local explicit_list = read('/var/lib/portage/world', nil, false)
         local explicit = linecount(explicit_list)
         return explicit .. ' (explicit), ' .. total .. ' (total) ' .. '| Portage'
+    elseif mngr == "pacman" then
+        local total = io.popen('pacman -Qq | wc -l', 'r'):read('*a')
+        return replace(total .. ' (total) | Pacman', '\n', '')
     elseif mngr == 'nil' then
         return 'N/A (no package manager was passed to the function)'
     else

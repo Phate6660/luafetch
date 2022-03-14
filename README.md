@@ -5,7 +5,7 @@ Decided to make this. Lua has been growing on me and I wanted to test it more.
 Run with `lua luafetch.lua` or `luajit luafetch.lua`.
 
 Args:
-- package manager: currently only `portage` is supported
+- package manager: currently only `pacman` and `portage` is supported
 - music player: currently only `mpd` and `spotify` are supported
 
 This is all pure Lua, EXCEPT for when using the args specified above.<br>
