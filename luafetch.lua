@@ -2,12 +2,39 @@
 -- Created by: Phate6660
 
 -- Takes an environmental variable. Returns the contents if it's set.
+
+local function cmd(command)
+    local ran_command = "bash" .. " -c " .. "\"" .. command .. "\""
+    local handle = io.popen(ran_command)
+    local result = handle:read("*a")
+    handle:close()
+    return result
+end
+
 local function env(var)
     local data = os.getenv(var)
     if not data then
         return 'N/A (could not read "$' .. var .. '", are you sure it is set?)'
     else
         return data
+    end
+end
+
+local function file_exists(name)
+    local f=io.open(name,"r")
+    if f~=nil then 
+        io.close(f)
+        return true
+    else
+        return false
+    end
+end
+
+local function android()
+    if file_exists("/data/data/com.termux/files/usr/bin/getprop") then
+        return true
+    else
+        return false
     end
 end
 
@@ -80,6 +107,10 @@ local function split(string, delim)
 end
 
 local function return_cpu()
+    if android() then
+        local output = cmd("lscpu | grep 'Model name' | cut -f 2 -d ':' | awk '{\\$1=\\$1}1' | head -n1")
+        return return_output(output, true)
+    end
     local line = read('/proc/cpuinfo', 5, true)
     local line_table = split(line, ':')
     return line_table[2]:sub(2) -- Remove leading space from using ':' as delimiter.
@@ -87,6 +118,16 @@ end
 
 local function return_distro()
     local line = read('/etc/os-release', 3, true)
+    if android() then
+        local av = cmd("getprop ro.build.version.release")
+        av = return_output(av, true)
+        local android = "Android " .. av
+        local kv = cmd("uname -r")
+	kv = return_output(kv, true)
+        local device = cmd("getprop ro.vendor.product.display")
+	device = return_output(device, true)
+	return android, kv, device
+    end
     local line_table = split(line, '=')
     return replace(line_table[2], '"', '')
 end
@@ -120,6 +161,10 @@ local function return_packages(mngr)
     elseif mngr == "pacman" then
         local total = io.popen('pacman -Qq | wc -l', 'r'):read('*a')
         return replace(total .. ' (total) | Pacman', '\n', '')
+    elseif mngr == 'pkg' or 'apt' or 'dpkg' then
+        local output = cmd("dpkg -l --no-pager")
+	output = linecount(output) - 4
+	return output
     elseif mngr == 'nil' then
         return 'N/A (no package manager was passed to the function)'
     else
@@ -151,6 +196,11 @@ end
 
 local function return_uptime()
     local uptime = tonumber(split(read('/proc/uptime'), '.')[1])
+    if uptime == nil then
+        local output = cmd("uptime -p")
+	local usable_output = return_output(output, true)
+        return usable_output
+    end
     if uptime > 86400 then
         local days_pre = uptime / 60 / 60 / 24
         days_pre = split(tostring(days_pre), '.')[1]
@@ -181,7 +231,11 @@ end
 
 local cpu      = return_cpu()
 local device   = read('/sys/devices/virtual/dmi/id/product_name', nil, true)
-local distro   = return_distro()
+if android() then
+    av, kv, dev = return_distro()
+else
+    local distro   = return_distro()
+end
 local editor   = env('EDITOR')
 local hostname = read('/etc/hostname', nil, true)
 local kernel   = read('/proc/sys/kernel/osrelease', nil, true)
@@ -192,16 +246,32 @@ local uptime   = return_uptime()
 local user     = env('USER')
 local music    = return_music(arg[2]) -- Reads the second arg passed.
 
-print('cpu       =  ' .. cpu      .. '\n'
-   .. 'device    =  ' .. device   .. '\n'
-   .. 'distro    =  ' .. distro   .. '\n'
-   .. 'editor    =  ' .. editor   .. '\n'
-   .. 'hostname  =  ' .. hostname .. '\n'
-   .. 'kernel    =  ' .. kernel   .. '\n'
-   .. 'memory    =  ' .. memory   .. '\n'
-   .. 'packages  =  ' .. packages .. '\n'
-   .. 'shell     =  ' .. shell    .. '\n'
-   .. 'uptime    =  ' .. uptime   .. '\n'
-   .. 'user      =  ' .. user     .. '\n'
-   .. 'music     =  ' .. music
-)
+if file_exists("/data/data/com.termux/files/usr/bin/getprop") then
+    print('cpu             =  ' .. cpu      .. '\n'
+       .. 'device          =  ' .. dev      .. '\n'
+       .. 'android version =  ' .. av       .. '\n'
+       .. 'kernel  version =  ' .. kv       .. '\n'
+       .. 'editor          =  ' .. editor   .. '\n'
+       .. 'hostname        =  ' .. hostname .. '\n'
+       .. 'memory          =  ' .. memory   .. '\n'
+       .. 'packages        =  ' .. packages .. '\n'
+       .. 'shell           =  ' .. shell    .. '\n'
+       .. 'uptime          =  ' .. uptime   .. '\n'
+       .. 'user            =  ' .. user     .. '\n'
+       .. 'music           =  ' .. music
+    )
+else
+    print('cpu       =  ' .. cpu      .. '\n'
+       .. 'device    =  ' .. device   .. '\n'
+       .. 'distro    =  ' .. distro   .. '\n'
+       .. 'editor    =  ' .. editor   .. '\n'
+       .. 'hostname  =  ' .. hostname .. '\n'
+       .. 'kernel    =  ' .. kernel   .. '\n'
+       .. 'memory    =  ' .. memory   .. '\n'
+       .. 'packages  =  ' .. packages .. '\n'
+       .. 'shell     =  ' .. shell    .. '\n'
+       .. 'uptime    =  ' .. uptime   .. '\n'
+       .. 'user      =  ' .. user     .. '\n'
+       .. 'music     =  ' .. music
+    )
+end
