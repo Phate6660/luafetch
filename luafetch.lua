@@ -246,7 +246,7 @@ local uptime   = return_uptime()
 local user     = env('USER')
 local music    = return_music(arg[2]) -- Reads the second arg passed.
 
-if file_exists("/data/data/com.termux/files/usr/bin/getprop") then
+if android() then
     print('cpu             =  ' .. cpu      .. '\n'
        .. 'device          =  ' .. dev      .. '\n'
        .. 'android version =  ' .. av       .. '\n'
