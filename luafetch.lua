@@ -30,6 +30,7 @@ local function file_exists(name)
     end
 end
 
+-- currently relies on termux
 local function android()
     if file_exists("/data/data/com.termux/files/usr/bin/getprop") then
         return true
@@ -50,6 +51,13 @@ local function linecount(string)
         table.insert(count, i)
     end
     return count[#count+1-1]
+end
+
+local function match_processor(id)
+    local hardware = {
+        ['0xd46'] = "Cortex-A510",
+    }
+    return hardware[id]
 end
 
 -- Takes a string, the character to find, and what to replace it with.
@@ -108,12 +116,17 @@ end
 
 local function return_cpu()
     if android() then
-        local output = cmd("lscpu | grep 'Model name' | cut -f 2 -d ':' | awk '{\\$1=\\$1}1' | head -n1")
-        return return_output(output, true)
+        line = read('/proc/cpuinfo', 7, true)
+    else
+        line = read('/proc/cpuinfo', 5, true)
     end
-    local line = read('/proc/cpuinfo', 5, true)
     local line_table = split(line, ':')
-    return line_table[2]:sub(2) -- Remove leading space from using ':' as delimiter.
+    local result = line_table[2]:sub(2) -- Remove leading space from using ':' as delimiter.
+    if android() then
+      return match_processor(result)
+    else
+      return result
+    end
 end
 
 local function return_distro()
@@ -123,10 +136,10 @@ local function return_distro()
         av = return_output(av, true)
         local android = "Android " .. av
         local kv = cmd("uname -r")
-	kv = return_output(kv, true)
+	      kv = return_output(kv, true)
         local device = cmd("getprop ro.vendor.product.display")
-	device = return_output(device, true)
-	return android, kv, device
+	      device = return_output(device, true)
+	      return android, kv, device
     end
     local line_table = split(line, '=')
     return replace(line_table[2], '"', '')
