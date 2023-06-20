@@ -136,10 +136,10 @@ local function return_distro()
         av = return_output(av, true)
         local android = "Android " .. av
         local kv = cmd("uname -r")
-	      kv = return_output(kv, true)
+        kv = return_output(kv, true)
         local device = cmd("getprop ro.vendor.product.display")
-	      device = return_output(device, true)
-	      return android, kv, device
+        device = return_output(device, true)
+        return android, kv, device
     end
     local line_table = split(line, '=')
     return replace(line_table[2], '"', '')
