@@ -1,8 +1,8 @@
 -- Luafetch
 -- Created by: Phate6660
 
--- Takes an environmental variable. Returns the contents if it's set.
-
+-- Runs an external command in bash and returns the output.
+-- TODO: Remove the dependency on bash.
 local function cmd(command)
     local ran_command = "bash" .. " -c " .. "\"" .. command .. "\""
     local handle = io.popen(ran_command)
@@ -11,6 +11,8 @@ local function cmd(command)
     return result
 end
 
+-- Reads an environmental variable and returns the contents if possible,
+-- otherwise it returns a dynamic error message stating which variable failed.
 local function env(var)
     local data = os.getenv(var)
     if not data then
@@ -20,6 +22,7 @@ local function env(var)
     end
 end
 
+-- Returns a bool based on whether or not the file exists.
 local function file_exists(name)
     local f=io.open(name,"r")
     if f~=nil then 
@@ -30,7 +33,8 @@ local function file_exists(name)
     end
 end
 
--- currently relies on termux
+-- Currently relies on termux.
+-- TODO: find a more accurate method which doesn't rely on Termux.
 local function android()
     if file_exists("/data/data/com.termux/files/usr/bin/getprop") then
         return true
@@ -53,6 +57,8 @@ local function linecount(string)
     return count[#count+1-1]
 end
 
+-- An Android specific function for matching the processor ID (obtained from `/proc/cpuinfo`),
+-- with the processor name and returns said name.
 local function match_processor(id)
     local hardware = {
         ['0xd46'] = "Cortex-A510",
@@ -145,6 +151,7 @@ local function return_distro()
     return replace(line_table[2], '"', '')
 end
 
+-- TODO: Gather more info, such as total and used memory.
 local function return_memory()
     local line = read('/proc/meminfo', 1, true)
     local line_table = split(line, ' ')
@@ -174,10 +181,14 @@ local function return_packages(mngr)
     elseif mngr == "pacman" then
         local total = io.popen('pacman -Qq | wc -l', 'r'):read('*a')
         return replace(total .. ' (total) | Pacman', '\n', '')
+    -- `pkg` is also a BSD package manager, but we'll get to that later
+    -- if this reaches a stage where it expands to BSD.
+    -- For now, this is in reference to the `pkg`
+    -- package manager built in to Termux
     elseif mngr == 'pkg' or 'apt' or 'dpkg' then
         local output = cmd("dpkg -l --no-pager")
-	output = linecount(output) - 4
-	return output
+        output = linecount(output) - 4
+        return output
     elseif mngr == 'nil' then
         return 'N/A (no package manager was passed to the function)'
     else
@@ -209,9 +220,12 @@ end
 
 local function return_uptime()
     local uptime = tonumber(split(read('/proc/uptime'), '.')[1])
-    if uptime == nil then
+    if android() then
+        -- TODO: Find a better method than running a command,
+        -- though unfortunately `/proc/uptime` is either missing or inaccessible on Android.
         local output = cmd("uptime -p")
-	local usable_output = return_output(output, true)
+        local usable_output = return_output(output, true)
+        -- TODO: Clean up and format output before returning it.
         return usable_output
     end
     if uptime > 86400 then
@@ -242,23 +256,24 @@ local function return_uptime()
     end
 end
 
-local cpu      = return_cpu()
-local device   = read('/sys/devices/virtual/dmi/id/product_name', nil, true)
+local cpu          = return_cpu()
+local device       = read('/sys/devices/virtual/dmi/id/product_name', nil, true)
 if android() then
-    av, kv, dev = return_distro()
+    av, kv, dev    = return_distro()
 else
     local distro   = return_distro()
 end
-local editor   = env('EDITOR')
-local hostname = read('/etc/hostname', nil, true)
-local kernel   = read('/proc/sys/kernel/osrelease', nil, true)
-local memory   = return_memory()
-local packages = return_packages(arg[1]) -- Reads first arg specified when running the script.
-local shell    = env('SHELL')
-local uptime   = return_uptime()
-local user     = env('USER')
-local music    = return_music(arg[2]) -- Reads the second arg passed.
+local editor       = env('EDITOR')
+local hostname     = read('/etc/hostname', nil, true)
+local kernel       = read('/proc/sys/kernel/osrelease', nil, true)
+local memory       = return_memory()
+local packages     = return_packages(arg[1]) -- Reads first arg passed.
+local shell        = env('SHELL')
+local uptime       = return_uptime()
+local user         = env('USER')
+local music        = return_music(arg[2]) -- Reads the second arg passed.
 
+-- TODO: Refactor down to a single a print statement instead of being lazy.
 if android() then
     print('cpu             =  ' .. cpu      .. '\n'
        .. 'device          =  ' .. dev      .. '\n'
