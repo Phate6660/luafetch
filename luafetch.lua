@@ -2,10 +2,8 @@
 -- Created by: Phate6660
 
 -- Runs an external command in bash and returns the output.
--- TODO: Remove the dependency on bash.
 local function cmd(command)
-    local ran_command = "bash" .. " -c " .. "\"" .. command .. "\""
-    local handle = io.popen(ran_command)
+    local handle = io.popen(command)
     local result = handle:read("*a")
     handle:close()
     return result
@@ -168,10 +166,8 @@ local function return_packages(mngr)
     mngr = mngr or 'nil'
     if mngr == "portage" then
         -- '/var/db/pkg/*/*' is a list of all packages.
-        local dirs = io.popen(
-            'find "/var/db/pkg/" -mindepth 2 -maxdepth 2 -type d -printf "%f\n"',
-            'r'
-        )
+        -- TODO: Get the list of dirs in pure lua.
+        local dirs = cmd('find "/var/db/pkg/" -mindepth 2 -maxdepth 2 -type d -printf "%f\n"')
         local dirs_list = dirs:read('*a')
         dirs:close()
         local total = linecount(dirs_list)
@@ -179,7 +175,7 @@ local function return_packages(mngr)
         local explicit = linecount(explicit_list)
         return explicit .. ' (explicit), ' .. total .. ' (total) ' .. '| Portage'
     elseif mngr == "pacman" then
-        local total = io.popen('pacman -Qq | wc -l', 'r'):read('*a')
+        local total = cmd('pacman -Qq | wc -l')
         return replace(total .. ' (total) | Pacman', '\n', '')
     -- `pkg` is also a BSD package manager, but we'll get to that later
     -- if this reaches a stage where it expands to BSD.
@@ -188,7 +184,7 @@ local function return_packages(mngr)
     elseif mngr == 'pkg' or 'apt' or 'dpkg' then
         local output = cmd("dpkg -l --no-pager")
         output = linecount(output) - 4
-        return output
+        return output .. " (total) | " .. mngr
     elseif mngr == 'nil' then
         return 'N/A (no package manager was passed to the function)'
     else
@@ -199,17 +195,10 @@ end
 local function return_music(player)
     player = player or 'nil'
     if player == 'mpd' then
-        local line = io.popen('mpc -f "%artist% - %album% - %title%" | head -n1', 'r')
-        local usable_line = line:read('*a')
-        line:close()
+        local line = cmd('mpc -f "%artist% - %album% - %title%" | head -n1')
         return replace(usable_line, '\n', '')
     elseif player == 'spotify' then
-        local line = io.popen(
-            'playerctl -p spotify metadata -f "{{ artist }} - {{ album }} - {{ title }}"',
-            'r'
-        )
-        local usable_line = line:read('*a')
-        line:close()
+        local line = cmd('playerctl -p spotify metadata -f "{{ artist }} - {{ album }} - {{ title }}"')
         return replace(usable_line, '\n', '')
     elseif player == 'nil' then
         return 'N/A (no player selected)'
@@ -257,10 +246,10 @@ local function return_uptime()
 end
 
 local cpu          = return_cpu()
-local device       = read('/sys/devices/virtual/dmi/id/product_name', nil, true)
 if android() then
     av, kv, dev    = return_distro()
 else
+    local device   = read('/sys/devices/virtual/dmi/id/product_name', nil, true)
     local distro   = return_distro()
 end
 local editor       = env('EDITOR')
