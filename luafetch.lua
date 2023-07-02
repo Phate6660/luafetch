@@ -31,16 +31,6 @@ local function file_exists(name)
     end
 end
 
--- Currently relies on termux.
--- TODO: find a more accurate method which doesn't rely on Termux.
-local function android()
-    if file_exists("/data/data/com.termux/files/usr/bin/getprop") then
-        return true
-    else
-        return false
-    end
-end
-
 -- Takes a string, creates a table delimited by newlines,
 -- counts the number of elements, then returns the number.
 local function linecount(string)
@@ -116,6 +106,19 @@ local function split(string, delim)
         table.insert(string_table, entry)
     end
     return string_table
+end
+
+-- Checks if the OS is Android, currently by parsing the kernel
+-- name and checking if it contains 'android', since it seems that
+-- most of not all android versions will contain 'android'
+-- in the kernel version.
+local function android()
+    local s = return_output(cmd('uname -r'))
+    if string.match(s, "android") then
+        return true
+    else
+        return false
+    end
 end
 
 local function return_cpu()
@@ -245,50 +248,41 @@ local function return_uptime()
     end
 end
 
-local cpu          = return_cpu()
+-- Gather Information
+-- Notes:
+-- * the first arg passed to the script is the packaga manager
+-- * the second arg the music player if music info is wanted
+-- TODO: hide info behind options, this will require more robust arg parsing.
+local cpu               = return_cpu()
 if android() then
-    av, kv, dev    = return_distro()
+    distro, kernel, device = return_distro()
 else
-    local device   = read('/sys/devices/virtual/dmi/id/product_name', nil, true)
-    local distro   = return_distro()
+    device              = read(
+        '/sys/devices/virtual/dmi/id/product_name', 
+        nil, true
+    )
+    distro              = return_distro()
+    kernel              = read('/proc/sys/kernel/osrelease', nil, true)
 end
-local editor       = env('EDITOR')
-local hostname     = read('/etc/hostname', nil, true)
-local kernel       = read('/proc/sys/kernel/osrelease', nil, true)
-local memory       = return_memory()
-local packages     = return_packages(arg[1]) -- Reads first arg passed.
-local shell        = env('SHELL')
-local uptime       = return_uptime()
-local user         = env('USER')
-local music        = return_music(arg[2]) -- Reads the second arg passed.
+local editor            = env('EDITOR')
+local hostname          = read('/etc/hostname', nil, true)
+local memory            = return_memory()
+local packages          = return_packages(arg[1])
+local shell             = env('SHELL')
+local uptime            = return_uptime()
+local user              = env('USER')
+local music             = return_music(arg[2])
 
--- TODO: Refactor down to a single a print statement instead of being lazy.
-if android() then
-    print('cpu             =  ' .. cpu      .. '\n'
-       .. 'device          =  ' .. dev      .. '\n'
-       .. 'android version =  ' .. av       .. '\n'
-       .. 'kernel  version =  ' .. kv       .. '\n'
-       .. 'editor          =  ' .. editor   .. '\n'
-       .. 'hostname        =  ' .. hostname .. '\n'
-       .. 'memory          =  ' .. memory   .. '\n'
-       .. 'packages        =  ' .. packages .. '\n'
-       .. 'shell           =  ' .. shell    .. '\n'
-       .. 'uptime          =  ' .. uptime   .. '\n'
-       .. 'user            =  ' .. user     .. '\n'
-       .. 'music           =  ' .. music
-    )
-else
-    print('cpu       =  ' .. cpu      .. '\n'
-       .. 'device    =  ' .. device   .. '\n'
-       .. 'distro    =  ' .. distro   .. '\n'
-       .. 'editor    =  ' .. editor   .. '\n'
-       .. 'hostname  =  ' .. hostname .. '\n'
-       .. 'kernel    =  ' .. kernel   .. '\n'
-       .. 'memory    =  ' .. memory   .. '\n'
-       .. 'packages  =  ' .. packages .. '\n'
-       .. 'shell     =  ' .. shell    .. '\n'
-       .. 'uptime    =  ' .. uptime   .. '\n'
-       .. 'user      =  ' .. user     .. '\n'
-       .. 'music     =  ' .. music
-    )
-end
+print('cpu             =  ' .. cpu      .. '\n'
+   .. 'device          =  ' .. device   .. '\n'
+   .. 'distro          =  ' .. distro   .. '\n'
+   .. 'kernel  version =  ' .. kernel   .. '\n'
+   .. 'editor          =  ' .. editor   .. '\n'
+   .. 'hostname        =  ' .. hostname .. '\n'
+   .. 'memory          =  ' .. memory   .. '\n'
+   .. 'packages        =  ' .. packages .. '\n'
+   .. 'shell           =  ' .. shell    .. '\n'
+   .. 'uptime          =  ' .. uptime   .. '\n'
+   .. 'user            =  ' .. user     .. '\n'
+   .. 'music           =  ' .. music
+)
