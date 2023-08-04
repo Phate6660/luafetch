@@ -15,6 +15,8 @@ lua solution. I use `mpc` and `head` for getting the music info for MPD. And I u
 
 ## Output
 
+From my personal desktop:
+
 `$ luajit luafetch.lua portage spotify`
 
 ```
@@ -30,4 +32,23 @@ shell     =  /bin/bash
 uptime    =  10d 16h 34m
 user      =  valley
 music     =  Flaw - Endangered Species - Medicate
+```
+
+From my Android device:
+
+`$ luajit luafetch.lua pkg`
+
+```
+cpu      =  Cortex-A510
+device   =  motorola edge+ (2022)
+distro   =  Android 12
+editor   =  N/A (could not read "$EDITOR", are you sure it is set?)
+hostname =  N/A (could not read "/etc/hostname")
+kernel   =  5.10.101-android12-9-00004-ge2ccd2db469a-ab9403744
+memory   =  7258 MB
+packages =  207 (total) | pkg
+shell    =  /data/data/com.termux/files/usr/bin/bash
+uptime   =  up 1 day, 11 hours, 45 minutes
+user     =  N/A (could not read "$USER", are you sure it is set?)
+music    =  N/A (no player selected)
 ```
